@@ -1,0 +1,44 @@
+# ci_adder.yml
+name: CI Adder
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [ "main" ]
+    paths:
+      - 'src/adder.sv'
+      - 'test/adder_test.sv'
+      - '.github/workflows/ci_adder.yml'
+      - '!**/*.md'
+      - '!LICENSE*'
+      - '!*.md'
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/adder.sv'
+      - 'test/adder_test.sv'
+      - '.github/workflows/ci_adder.yml'
+      - '!**/*.md'
+      - '!LICENSE*'
+      - '!*.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verilator:
+    name: Verilator
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker://verilator/verilator:latest
+      with:
+        args: '--binary -I./src --assert --top-module adder_test src/adder.sv test/adder_test.sv -o adder_test'
+      env:
+        CCACHE_DIR: '/tmp/ccache'
+    - run: obj_dir/adder_test
+
