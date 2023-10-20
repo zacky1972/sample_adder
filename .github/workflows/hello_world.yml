@@ -1,0 +1,16 @@
+name: Docker sample
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+jobs:
+  sample:
+    name: Docker sample
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker://hello-world:latest
