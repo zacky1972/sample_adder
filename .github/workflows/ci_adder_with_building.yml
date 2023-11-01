@@ -60,7 +60,7 @@ jobs:
         with:
           path: verilator-${{ env.VERILATOR_VERSION }}
           key: verilator-${{ env.VERILATOR_VERSION }}
-      - name: Compile and install Verilator ${{ env.VERILATOR_VERSION }}
+      - name: Compile Verilator ${{ env.VERILATOR_VERSION }}
         if: steps.cache-verilator.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/verilator/verilator verilator-${{ env.VERILATOR_VERSION }}
@@ -69,6 +69,9 @@ jobs:
           autoconf
           ./configure
           make -j2
+      - name: Install Verilator ${{ env.VERILATOR_VERSION }}
+        run: |
+          cd verilator-${{ env.VERILATOR_VERSION }}
           sudo make install
           verilator --version
       - name: Compile adder and testbench
