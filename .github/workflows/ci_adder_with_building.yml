@@ -1,0 +1,78 @@
+# ci_adder_with_building.yml
+name: CI Adder (with building)
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [ "main" ]
+    paths:
+      - 'src/adder.sv'
+      - 'test/adder_test.sv'
+      - '.github/workflows/ci_adder_with_building.yml'
+      - '!**/*.md'
+      - '!LICENSE*'
+      - '!*.md'
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/adder.sv'
+      - 'test/adder_test.sv'
+      - '.github/workflows/ci_adder_with_building.yml'
+      - '!**/*.md'
+      - '!LICENSE*'
+      - '!*.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  VERILATOR_VERSION: "v5.018"
+
+jobs:
+  verilator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run apt update
+        run: sudo apt update 2> /dev/null
+      - name: Install prerequisites by apt
+        run: |
+          sudo apt install -y tzdata git perl python3 make g++ ccache \
+          autoconf automake autotools-dev \
+          curl python3 libmpc-dev libmpfr-dev libgmp-dev \
+          gawk build-essential bison flex texinfo gperf \
+          libtool patchutils bc \
+          zlib1g-dev libexpat-dev libfl-dev \
+          numactl perl-doc help2man
+      - name: Install prerequisites by Python
+        run: sudo pip3 install sphinx sphinx_rtd_theme breathe
+      - name: Install prerequisites by cpan
+        run: |
+          sudo cpan install Pod::Perldoc
+          sudo cpan install Parallel::Forker
+      - name: Cache Verilator ${{ env.VERILATOR_VERSION }}
+        uses: actions/cache@v3
+        id: cache-verilator
+        with:
+          path: verilator-${{ env.VERILATOR_VERSION }}
+          key: verilator-${{ env.VERILATOR_VERSION }}
+      - name: Compile and install Verilator ${{ env.VERILATOR_VERSION }}
+        if: steps.cache-verilator.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/verilator/verilator verilator-${{ env.VERILATOR_VERSION }}
+          cd verilator-${{ env.VERILATOR_VERSION }}
+          git checkout ${{ env.VERILATOR_VERSION }}
+          autoconf
+          ./configure
+          make -j2
+          sudo make install
+          verilator --version
+      - name: Compile adder and testbench
+        run: verilator --binary -I./src --assert --top-module adder_test src/adder.sv test/adder_test.sv -o adder_test
+      - name: Run testbench
+        run: obj_dir/adder_test
+
