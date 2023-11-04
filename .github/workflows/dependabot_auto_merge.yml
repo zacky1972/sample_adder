@@ -13,12 +13,11 @@ jobs:
   verilator:
     name: Verilator
     runs-on: ubuntu-latest
+    container: docker://verilator/verilator:latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
     - uses: actions/checkout@v4
-    - uses: docker://verilator/verilator:latest
-      with:
-        args: '--binary -I./src --assert --top-module adder_test src/adder.sv test/adder_test.sv -o adder_test'
+    - run: 'velirator --binary -I./src --assert --top-module adder_test src/adder.sv test/adder_test.sv -o adder_test'
       env:
         CCACHE_DIR: '/tmp/ccache'
     - run: obj_dir/adder_test
