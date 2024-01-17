@@ -55,7 +55,7 @@ jobs:
           sudo cpan install Pod::Perldoc
           sudo cpan install Parallel::Forker
       - name: Cache Verilator ${{ env.VERILATOR_VERSION }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-verilator
         with:
           path: verilator-${{ env.VERILATOR_VERSION }}
