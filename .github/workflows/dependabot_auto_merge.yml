@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: docker://verilator/verilator:latest
       with:
         args: '--binary -I./src --assert --top-module adder_test src/adder.sv test/adder_test.sv -o adder_test'
